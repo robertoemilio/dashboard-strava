@@ -6,6 +6,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from utils import load_activities
 
+if st.button("🔄 Atualizar dados"):
+    st.cache_data.clear()
+    
 # =========================
 # CONFIGURAÇÃO
 # =========================
@@ -15,7 +18,13 @@ st.title("🚴‍♂️ Dashboard de Ciclismo - Strava")
 # =========================
 # CARREGAR DADOS
 # =========================
-data = load_activities()
+#data = load_activities()
+@st.cache_data(ttl=600)
+def get_data():
+    return load_activities()
+
+data = get_data()
+
 df = pd.DataFrame(data)
 
 df = df[df["type"] == "Ride"]
@@ -24,6 +33,21 @@ df["start_date"] = pd.to_datetime(df["start_date"]).dt.tz_localize(None)
 df["distance_km"] = df["distance"] / 1000
 df["moving_time_min"] = df["moving_time"] / 60
 df["speed_kmh"] = df["average_speed"] * 3.6
+
+# =========================
+# FILTRO
+# =========================
+#st.sidebar.header("📅 Filtro de Período")
+
+#periodo = st.sidebar.selectbox(
+#    "Selecione o período",
+#    ["Tudo", "7 dias", "30 dias", "90 dias"]
+#)
+
+#if periodo != "Tudo":
+#    dias = int(periodo.split()[0])
+#    data_limite = pd.Timestamp.now() - pd.Timedelta(days=dias)
+#    df = df[df["start_date"] >= data_limite]
 
 
 # =========================
@@ -342,4 +366,5 @@ st.subheader("📋 Últimos pedais")
 st.dataframe(
     df[["name", "distance_km", "speed_kmh", "start_date"]]
     .sort_values(by="start_date", ascending=False)
+    .head(10)
 )

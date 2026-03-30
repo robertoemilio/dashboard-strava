@@ -1,22 +1,52 @@
-import requests
-from auth_strava import get_valid_token
+import streamlit as st
 
-BASE_URL = "https://www.strava.com/api/v3"
+CLIENT_ID = st.secrets["STRAVA_CLIENT_ID"]
+CLIENT_SECRET = st.secrets["STRAVA_CLIENT_SECRET"]
+REFRESH_TOKEN = st.secrets["STRAVA_REFRESH_TOKEN"]
+
+def get_access_token():
+    url = "https://www.strava.com/oauth/token"
+
+    payload = {
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "refresh_token": REFRESH_TOKEN,
+        "grant_type": "refresh_token"
+    }
+
+    res = requests.post(url, data=payload)
+    res.raise_for_status()
+
+    return res.json()["access_token"]
 
 
-def get_activities(per_page=50):
-    token = get_valid_token()
+def get_activities():
+    token = get_access_token()
+
+    url = "https://www.strava.com/api/v3/athlete/activities"
 
     headers = {
         "Authorization": f"Bearer {token}"
     }
 
-    response = requests.get(
-        f"{BASE_URL}/athlete/activities",
-        headers=headers,
-        params={"per_page": per_page}
-    )
+    all_data = []
+    page = 1
 
-    response.raise_for_status()
+    while True:
+        params = {
+            "per_page": 50,
+            "page": page
+        }
 
-    return response.json()
+        res = requests.get(url, headers=headers, params=params)
+        res.raise_for_status()
+
+        data = res.json()
+
+        if not data:
+            break
+
+        all_data.extend(data)
+        page += 1
+
+    return all_data
