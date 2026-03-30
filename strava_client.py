@@ -1,3 +1,4 @@
+import requests
 import streamlit as st
 
 CLIENT_ID = st.secrets["STRAVA_CLIENT_ID"]
