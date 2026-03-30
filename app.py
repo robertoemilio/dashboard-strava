@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from utils import load_activities
+from utils import gerar_analise #adicionei essa linha Roberto - 30-03-2026 para gerar uma espeicie de IA
 
 if st.button("🔄 Atualizar dados"):
     st.cache_data.clear()
@@ -340,6 +341,17 @@ if len(df_week) >= 4:
 
     meta_ajustada = meta_final * fator
     st.success(f"{meta_ajustada:.2f} km")
+
+# =========================
+# ANÁLISE AUTOMÁTICA DOS TREINOS - Roberto - 30-03-2026
+# =========================
+
+st.subheader("🧠 Análise Inteligente dos Treinos")
+
+analise = gerar_analise(df)
+
+st.info(analise)
+
 
 # =========================
 # NOVOS GRÁFICOS POR PEDAL
