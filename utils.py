@@ -59,3 +59,53 @@ def gerar_analise(df):
     mensagem += f"\n🎯 Meta sugerida: entre {meta_min:.1f} km e {meta_max:.1f} km na próxima semana.\n"
 
     return mensagem
+
+#------------------
+#esse bloco coloquei para testar analise individual de atividade - Roberto - 01/04/2026
+def analisar_atividade(streams):
+    velocidade = streams["velocity_smooth"]["data"]
+    distancia = streams["distance"]["data"]
+
+    velocidade_kmh = [v * 3.6 for v in velocidade]
+
+    # Dividir em 3 partes
+    n = len(velocidade_kmh)
+    inicio = velocidade_kmh[:n//3]
+    meio = velocidade_kmh[n//3:2*n//3]
+    fim = velocidade_kmh[2*n//3:]
+
+    media_inicio = sum(inicio) / len(inicio)
+    media_meio = sum(meio) / len(meio)
+    media_fim = sum(fim) / len(fim)
+
+    mensagem = "🚴 **Análise da atividade**\n\n"
+
+    mensagem += f"Velocidade média geral: {sum(velocidade_kmh)/n:.1f} km/h\n\n"
+
+    mensagem += f"📊 Início: {media_inicio:.1f} km/h\n"
+    mensagem += f"📊 Meio: {media_meio:.1f} km/h\n"
+    mensagem += f"📊 Final: {media_fim:.1f} km/h\n\n"
+
+    # Detectar queda progressiva
+    if media_fim < media_inicio * 0.85:
+        # descobrir onde começou a queda real
+        queda_index = None
+        for i in range(len(velocidade_kmh)):
+            if velocidade_kmh[i] < media_inicio * 0.8:
+                queda_index = i
+                break
+
+        if queda_index:
+            km_queda = distancia[queda_index] / 1000
+            mensagem += f"📉 Queda consistente de performance por volta de {km_queda:.1f} km\n"
+    else:
+        mensagem += "💪 Ritmo consistente durante o treino\n"
+
+    # Insight inteligente
+    if media_meio > media_fim:
+        mensagem += "\n⚠️ Indício de fadiga progressiva no final do treino\n"
+
+    if media_inicio > media_meio:
+        mensagem += "⚠️ Você pode ter começado forte demais\n"
+
+    return mensagem

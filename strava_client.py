@@ -51,3 +51,23 @@ def get_activities():
         page += 1
 
     return all_data
+
+#adicionei dia 01-04-2026 para analisar cada trilha em particular - Roberto
+def get_activity_streams(activity_id):
+    token = get_access_token()
+
+    url = f"https://www.strava.com/api/v3/activities/{activity_id}/streams"
+
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    params = {
+        "keys": "distance,velocity_smooth,altitude,time",
+        "key_by_type": "true"
+    }
+
+    res = requests.get(url, headers=headers, params=params)
+    res.raise_for_status()
+
+    return res.json()

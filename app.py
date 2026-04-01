@@ -7,6 +7,10 @@ from sklearn.preprocessing import PolynomialFeatures
 from utils import load_activities
 from utils import gerar_analise #adicionei essa linha Roberto - 30-03-2026 para gerar uma espeicie de IA
 
+#CARREGUEI AQUI ESSA PARTE DE CODIGO MAS NAO TENHO CERTEZA SE É NESSE FONTE - ROBERTO - 01/04/2026
+from strava_client import get_activity_streams
+from utils import analisar_atividade
+
 if st.button("🔄 Atualizar dados"):
     st.cache_data.clear()
     
@@ -380,3 +384,29 @@ st.dataframe(
     .sort_values(by="start_date", ascending=False)
     .head(10)
 )
+
+# ===============================
+# 🔍 ANÁLISE DETALHADA POR ATIVIDADE
+# ===============================
+
+st.subheader("🔍 Análise detalhada por atividade")
+
+# Criar lista amigável
+df["label"] = df["name"] + " - " + df["start_date"].dt.strftime("%d/%m/%Y")
+
+atividade_escolhida = st.selectbox(
+    "Selecione uma atividade",
+    df["label"],
+    key="atividade_detalhada"
+)
+
+# Pegar ID correto
+atividade_id = df[df["label"] == atividade_escolhida]["id"].values[0]
+
+# 🔹 AQUI entra o get_activity_streams
+streams = get_activity_streams(atividade_id)
+
+# 🔹 AQUI entra a análise
+analise = analisar_atividade(streams)
+
+st.info(analise)
