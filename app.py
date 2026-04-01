@@ -10,6 +10,7 @@ from utils import gerar_analise #adicionei essa linha Roberto - 30-03-2026 para 
 #CARREGUEI AQUI ESSA PARTE DE CODIGO MAS NAO TENHO CERTEZA SE É NESSE FONTE - ROBERTO - 01/04/2026
 from strava_client import get_activity_streams
 from utils import analisar_atividade
+import plotly.graph_objects as go
 
 if st.button("🔄 Atualizar dados"):
     st.cache_data.clear()
@@ -410,3 +411,28 @@ streams = get_activity_streams(atividade_id)
 analise = analisar_atividade(streams)
 
 st.info(analise)
+
+#---------------
+#Roberto - 01/04/2026
+velocidade = streams["velocity_smooth"]["data"]
+distancia = streams["distance"]["data"]
+
+velocidade_kmh = [v * 3.6 for v in velocidade]
+dist_km = [d / 1000 for d in distancia]
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=dist_km,
+    y=velocidade_kmh,
+    mode='lines',
+    name='Velocidade (km/h)'
+))
+
+fig.update_layout(
+    title="📈 Velocidade ao longo do percurso",
+    xaxis_title="Distância (km)",
+    yaxis_title="Velocidade (km/h)"
+)
+
+st.plotly_chart(fig, use_container_width=True)
