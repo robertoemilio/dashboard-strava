@@ -510,6 +510,21 @@ if quebra_index:
         name="Quebra"
     ))
 
+# ===============================
+# 🎯 PACING IDEAL
+# ===============================
+
+if fadiga_index:
+    trecho_bom = velocidade_kmh[:fadiga_index]
+else:
+    trecho_bom = velocidade_kmh[:int(len(velocidade_kmh)*0.3)]
+
+# remover valores muito extremos (ruído)
+trecho_filtrado = [v for v in trecho_bom if v > 5]
+
+pacing_ideal = sum(trecho_filtrado) / len(trecho_filtrado)    
+
+
 fig.update_layout(
     title="📈 Velocidade ao longo do percurso",
     xaxis_title="Distância (km)",
@@ -526,7 +541,17 @@ fig.add_hline(
     annotation_position="top right"
 )
 
+fig.add_hline(
+    y=pacing_ideal,
+    line_dash="dot",
+    line_color="green",
+    line_width=3,
+    annotation_text="Pacing Ideal",
+    annotation_position="bottom right"
+)
+
 st.plotly_chart(fig, use_container_width=True)
+
 
 # ===============================
 # 📊 TEXTO EXPLICATIVO
@@ -538,3 +563,16 @@ if fadiga_index and quebra_index:
 
 👉 Sugestão: controlar melhor o ritmo inicial para evitar queda de desempenho
 """)
+
+# Pacing
+st.success(f"""
+🎯 **Pacing Ideal estimado: {pacing_ideal:.1f} km/h**
+
+👉 Esse é o ritmo que você poderia manter para evitar a quebra.
+
+📉 Você provavelmente começou acima desse ritmo, o que gerou fadiga progressiva.
+
+💡 Estratégia:
+- Comece entre {pacing_ideal - 1:.1f} e {pacing_ideal:.1f} km/h
+- Evite picos acima de {pacing_ideal + 2:.1f} km/h no início
+""")    
