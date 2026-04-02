@@ -412,13 +412,42 @@ analise = analisar_atividade(streams)
 
 st.info(analise)
 
-#---------------
-#Roberto - 01/04/2026
+# ===============================
+# 📈 GRÁFICO DE PERFORMANCE
+# ===============================
+
 velocidade = streams["velocity_smooth"]["data"]
 distancia = streams["distance"]["data"]
 
+# Converter unidades
 velocidade_kmh = [v * 3.6 for v in velocidade]
 dist_km = [d / 1000 for d in distancia]
+
+
+# ===============================
+# 🔍 DETECTAR FADIGA E QUEBRA
+# ===============================
+
+n = len(velocidade_kmh)
+
+inicio_idx = int(n * 0.25)
+
+ritmo_base = sum(velocidade_kmh[:inicio_idx]) / inicio_idx
+
+fadiga_index = None
+quebra_index = None
+
+for i in range(inicio_idx, n - 15):
+    trecho = velocidade_kmh[i:i+15]
+
+    # 🟡 Fadiga leve (queda inicial)
+    if not fadiga_index and all(v < ritmo_base * 0.85 for v in trecho):
+        fadiga_index = i
+
+    # 🔴 Quebra real (queda forte)
+    if all(v < ritmo_base * 0.50 for v in trecho):
+        quebra_index = i
+        break
 
 fig = go.Figure()
 
@@ -429,10 +458,83 @@ fig.add_trace(go.Scatter(
     name='Velocidade (km/h)'
 ))
 
+# ===============================
+# 🟡 ZONA DE FADIGA
+# ===============================
+if fadiga_index:
+    fig.add_vrect(
+        x0=dist_km[fadiga_index],
+        x1=dist_km[fadiga_index] + 3,
+        fillcolor="yellow",
+        opacity=0.2,
+        line_width=0,
+    )
+
+# ===============================
+# 🔴 ZONA DE QUEBRA
+# ===============================
+if quebra_index:
+    fig.add_vrect(
+        x0=dist_km[quebra_index],
+        x1=dist_km[quebra_index] + 5,
+        fillcolor="red",
+        opacity=0.2,
+        line_width=0,
+    )
+
+# ===============================
+# 🔴 MARCAR QUEBRA NO GRÁFICO
+# ===============================
+
+# 🟡 Fadiga
+if fadiga_index:
+    fig.add_trace(go.Scatter(
+        x=[dist_km[fadiga_index]],
+        y=[velocidade_kmh[fadiga_index]],
+        mode='markers+text',
+        text=["🟡 Fadiga"],
+        textposition="top center",
+        marker=dict(size=10, color="yellow"),
+        name="Fadiga"
+    ))
+
+# 🔴 Quebra
+if quebra_index:
+    fig.add_trace(go.Scatter(
+        x=[dist_km[quebra_index]],
+        y=[velocidade_kmh[quebra_index]],
+        mode='markers+text',
+        text=["🔴 Quebra"],
+        textposition="top center",
+        marker=dict(size=12, color="red"),
+        name="Quebra"
+    ))
+
 fig.update_layout(
     title="📈 Velocidade ao longo do percurso",
     xaxis_title="Distância (km)",
-    yaxis_title="Velocidade (km/h)"
+    yaxis_title="Velocidade (km/h)",
+    hovermode="x unified"
+)
+
+fig.add_hline(
+    y=sum(velocidade_kmh)/len(velocidade_kmh),
+    line_dash="dash",
+    line_color="orange",
+    line_width=3,
+    annotation_text="Média",
+    annotation_position="top right"
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
+# ===============================
+# 📊 TEXTO EXPLICATIVO
+# ===============================
+if fadiga_index and quebra_index:
+    st.warning(f"""
+⚠️ Fadiga iniciou por volta de {dist_km[fadiga_index]:.1f} km  
+🔴 Quebra consolidada após {dist_km[quebra_index]:.1f} km  
+
+👉 Sugestão: controlar melhor o ritmo inicial para evitar queda de desempenho
+""")
