@@ -11,6 +11,7 @@ from utils import gerar_analise #adicionei essa linha Roberto - 30-03-2026 para 
 from strava_client import get_activity_streams
 from utils import analisar_atividade
 import plotly.graph_objects as go
+import numpy as np
 
 if st.button("🔄 Atualizar dados"):
     st.cache_data.clear()
@@ -511,7 +512,7 @@ if quebra_index:
     ))
 
 # ===============================
-# 🎯 PACING IDEAL
+# 🎯 PACING IDEAL (VERSÃO FINAL)
 # ===============================
 
 if fadiga_index:
@@ -519,10 +520,15 @@ if fadiga_index:
 else:
     trecho_bom = velocidade_kmh[:int(len(velocidade_kmh)*0.3)]
 
-# remover valores muito extremos (ruído)
-trecho_filtrado = [v for v in trecho_bom if v > 5]
+# 1️⃣ filtro básico
+trecho_filtrado = [v for v in trecho_bom if 8 < v < 25]
 
-pacing_ideal = sum(trecho_filtrado) / len(trecho_filtrado)    
+# 2️⃣ 👉 AQUI entra o que você perguntou
+limite_superior = np.percentile(trecho_filtrado, 90)
+trecho_filtrado = [v for v in trecho_filtrado if v <= limite_superior]
+
+# 3️⃣ cálculo final
+pacing_ideal = np.median(trecho_filtrado)
 
 
 fig.update_layout(
@@ -576,3 +582,4 @@ st.success(f"""
 - Comece entre {pacing_ideal - 1:.1f} e {pacing_ideal:.1f} km/h
 - Evite picos acima de {pacing_ideal + 2:.1f} km/h no início
 """)    
+
