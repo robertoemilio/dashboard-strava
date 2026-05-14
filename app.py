@@ -268,15 +268,6 @@ col1, col2, col3, col4 = st.columns(4)
 # 🏆 PR DISTÂNCIA
 # =========================================================
 
-#with col1:
-#    st.markdown(f'''
-#    <div class="card">
-#        <div class="card-icon">🚴</div>
-#        <div class="card-title">Distância Total</div>
-#        <div class="card-value">{dist_total} km</div>
-#   </div>
-#   ''', unsafe_allow_html=True)
-
 with col1:
     st.markdown(f'''
     <div class="pr-card">
@@ -291,72 +282,39 @@ with col1:
 # =========================================================
 
 with col2:
-
-    st.markdown(f"""
+    st.markdown(f'''
     <div class="pr-card">
-
-        <div class="pr-icon">
-            ⚡
-        </div>
-
-        <div class="pr-title">
-            PR Velocidade
-        </div>
-
-        <div class="pr-value">
-            {pr_velocidade:.1f} km/h
-        </div>
-
+        <div class="pr-icon">⚡</div>
+        <div class="pr-title">PR Velocidade</div>
+        <div class="pr-value">{pr_velocidade:.1f} km/h</div>
     </div>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
 
 # =========================================================
 # ⛰️ KOM SUBIDA
 # =========================================================
 
 with col3:
-
-    st.markdown(f"""
+    st.markdown(f'''
     <div class="pr-card">
-
-        <div class="pr-icon">
-            ⛰️
-        </div>
-
-        <div class="pr-title">
-            KOM Subida
-        </div>
-
-        <div class="pr-value">
-            {pr_altimetria:.0f} m
-        </div>
-
+        <div class="pr-icon">⛰️</div>
+        <div class="pr-title">KOM Subida</div>
+        <div class="pr-value">{pr_altimetria:.0f} m</div>
     </div>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
 
 # =========================================================
 # 🚴 LONGÃO
 # =========================================================
 
 with col4:
-
-    st.markdown(f"""
+    st.markdown(f'''
     <div class="pr-card">
-
-        <div class="pr-icon">
-            🚴
-        </div>
-
-        <div class="pr-title">
-            Longão
-        </div>
-
-        <div class="pr-value">
-            {pr_tempo:.0f} min
-        </div>
-
+        <div class="pr-icon">🚴</div>
+        <div class="pr-title">Longão</div>
+        <div class="pr-value">{pr_tempo:.0f} min</div>
     </div>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
 
 
 
