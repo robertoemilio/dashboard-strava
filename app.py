@@ -68,6 +68,30 @@ def aplicar_tema_plotly(fig):
     return fig
 #---------------------------------------
 
+# =========================
+# SPARKLINE
+# =========================
+
+def gerar_sparkline(data):
+
+    blocks = "▁▂▃▄▅▆▇█"
+
+    mn = min(data)
+    mx = max(data)
+
+    if mx - mn == 0:
+        return blocks[0] * len(data)
+
+    spark = ""
+
+    for v in data:
+        idx = int((v - mn) / (mx - mn) * (len(blocks)-1))
+        spark += blocks[idx]
+
+    return spark
+
+
+#---------------------------------------
 
 if st.button("🔄 Atualizar dados"):
     st.cache_data.clear()
@@ -157,6 +181,13 @@ else:
 
 
 
+# =========================
+# SPARKLINE DATA
+# =========================
+
+spark_data = df_group["distance_km"].tail(7).tolist()
+
+sparkline = gerar_sparkline(spark_data)
 
 # =========================
 # KPIs
@@ -185,6 +216,7 @@ with col1:
         <div class="card-icon">🚴</div>
         <div class="card-title">Distância Total</div>
         <div class="card-value">{dist_total} km</div>
+        <div class="sparkline">{sparkline}</div>
     </div>
     ''', unsafe_allow_html=True)
 

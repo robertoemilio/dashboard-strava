@@ -136,3 +136,33 @@ div[data-testid="metric-container"] div {
 
     font-weight: 800;
 }
+
+
+.sparkline {
+
+    color: #FC5200;
+
+    font-size: 22px;
+
+    margin-top: 10px;
+
+    letter-spacing: 2px;
+}
+
+.card {
+
+    animation: fadeUp 0.7s ease;
+}
+
+@keyframes fadeUp {
+
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
