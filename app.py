@@ -246,6 +246,121 @@ with col4:
     ''', unsafe_allow_html=True)
 
 
+# =========================================================
+# 🏆 KOM / PRs
+# =========================================================
+
+pr_distancia = df["distance_km"].max()
+
+pr_velocidade = df["speed_kmh"].max()
+
+pr_altimetria = df["total_elevation_gain"].max()
+
+pr_tempo = df["moving_time_min"].max()
+
+# =========================================================
+# LINHA DOS CARDS
+# =========================================================
+
+col1, col2, col3, col4 = st.columns(4)
+
+# =========================================================
+# 🏆 PR DISTÂNCIA
+# =========================================================
+
+with col1:
+
+    st.markdown(f"""
+    <div class="pr-card">
+
+        <div class="pr-icon">
+            🏆
+        </div>
+
+        <div class="pr-title">
+            PR Distância
+        </div>
+
+        <div class="pr-value">
+            {pr_distancia:.1f} km
+        </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+# =========================================================
+# ⚡ PR VELOCIDADE
+# =========================================================
+
+with col2:
+
+    st.markdown(f"""
+    <div class="pr-card">
+
+        <div class="pr-icon">
+            ⚡
+        </div>
+
+        <div class="pr-title">
+            PR Velocidade
+        </div>
+
+        <div class="pr-value">
+            {pr_velocidade:.1f} km/h
+        </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+# =========================================================
+# ⛰️ KOM SUBIDA
+# =========================================================
+
+with col3:
+
+    st.markdown(f"""
+    <div class="pr-card">
+
+        <div class="pr-icon">
+            ⛰️
+        </div>
+
+        <div class="pr-title">
+            KOM Subida
+        </div>
+
+        <div class="pr-value">
+            {pr_altimetria:.0f} m
+        </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+# =========================================================
+# 🚴 LONGÃO
+# =========================================================
+
+with col4:
+
+    st.markdown(f"""
+    <div class="pr-card">
+
+        <div class="pr-icon">
+            🚴
+        </div>
+
+        <div class="pr-title">
+            Longão
+        </div>
+
+        <div class="pr-value">
+            {pr_tempo:.0f} min
+        </div>
+
+    </div>
+    """, unsafe_allow_html=True)
+
+    
 
 # =========================
 # EVOLUÇÃO

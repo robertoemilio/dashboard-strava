@@ -167,3 +167,63 @@ div[data-testid="metric-container"] div {
     }
 }
 
+/* =========================================================
+KOM / PR CARDS
+========================================================= */
+
+.pr-card {
+
+    background:
+        linear-gradient(
+            145deg,
+            #1a1f27,
+            #0f141a
+        );
+
+    padding: 20px;
+
+    border-radius: 18px;
+
+    text-align: center;
+
+    border: 1px solid #30363d;
+
+    transition: all 0.3s ease;
+
+    margin-top: 10px;
+}
+
+.pr-card:hover {
+
+    transform: translateY(-4px);
+
+    border-color: gold;
+
+    box-shadow:
+        0 6px 20px rgba(255,215,0,0.2);
+}
+
+.pr-icon {
+
+    font-size: 34px;
+
+    margin-bottom: 10px;
+}
+
+.pr-title {
+
+    color: #8b949e;
+
+    font-size: 15px;
+
+    margin-bottom: 8px;
+}
+
+.pr-value {
+
+    color: white;
+
+    font-size: 28px;
+
+    font-weight: 800;
+}
