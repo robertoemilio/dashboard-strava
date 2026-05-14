@@ -7,10 +7,13 @@ from sklearn.preprocessing import PolynomialFeatures
 from utils import load_activities
 from utils import gerar_analise #adicionei essa linha Roberto - 30-03-2026 para gerar uma espeicie de IA
 
-#CARREGUEI AQUI ESSA PARTE DE CODIGO MAS NAO TENHO CERTEZA SE É NESSE FONTE - ROBERTO - 01/04/2026
-from strava_client import get_activity_streams
+
+from strava_client import get_activity_streams, get_activity_map
 from utils import analisar_atividade
 import plotly.graph_objects as go
+import folium
+from streamlit_folium import st_folium
+import polyline
 import numpy as np
 
 # =========================
@@ -493,6 +496,38 @@ atividade_id = df[df["label"] == atividade_escolhida]["id"].values[0]
 
 # 🔹 AQUI entra o get_activity_streams
 streams = get_activity_streams(atividade_id)
+
+# ===============================
+# 🗺️ MAPA DO PEDAL
+# ===============================
+
+polyline_map = get_activity_map(atividade_id)
+
+if polyline_map:
+
+    pontos = polyline.decode(polyline_map)
+
+    mapa = folium.Map(
+        location=pontos[0],
+        zoom_start=13,
+        tiles="CartoDB dark_matter"
+    )
+
+    folium.PolyLine(
+        pontos,
+        color="#FC5200",
+        weight=5,
+        opacity=0.8
+    ).add_to(mapa)
+
+    st.subheader("🗺️ Mapa do percurso")
+
+    st_folium(
+        mapa,
+        width=1200,
+        height=500
+    )
+
 
 # 🔹 AQUI entra a análise
 analise = analisar_atividade(streams)

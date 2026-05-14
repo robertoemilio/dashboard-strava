@@ -71,3 +71,21 @@ def get_activity_streams(activity_id):
     res.raise_for_status()
 
     return res.json()
+
+# Essa função traz os mapas do Strava - Roberto - 14-05-2026
+def get_activity_map(activity_id):
+    token = get_access_token()
+    url = f"https://www.strava.com/api/v3/activities/{activity_id}"
+
+    headers = {
+         "Authorization": f"Bearer {token}"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    if response.status_code != 200:
+        return None
+
+    data = response.json()
+
+    return data.get("map", {}).get("summary_polyline")
