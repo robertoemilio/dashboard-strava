@@ -268,9 +268,17 @@ col1, col2, col3, col4 = st.columns(4)
 # 🏆 PR DISTÂNCIA
 # =========================================================
 
+#with col1:
+#    st.markdown(f'''
+#    <div class="card">
+#        <div class="card-icon">🚴</div>
+#        <div class="card-title">Distância Total</div>
+##        <div class="card-value">{dist_total} km</div>
+ #   </div>
+ #   ''', unsafe_allow_html=True)
 with col1:
 
-    st.markdown(f"""
+    st.markdown(f'''
     <div class="pr-card">
 
         <div class="pr-icon">
@@ -286,7 +294,7 @@ with col1:
         </div>
 
     </div>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
 
 # =========================================================
 # ⚡ PR VELOCIDADE
@@ -360,7 +368,7 @@ with col4:
     </div>
     """, unsafe_allow_html=True)
 
-    
+
 
 # =========================
 # EVOLUÇÃO
