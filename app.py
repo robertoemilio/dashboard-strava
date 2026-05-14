@@ -260,9 +260,6 @@ progresso = min((km_semana / meta_km) * 100, 100)
 html_meta = f"""
 <div class="goal-container">
 
-    <div class="goal-title">
-        🎯 Meta semanal
-    </div>
 
     <div class="goal-text">
         {km_semana:.1f} / {meta_km} km
@@ -281,7 +278,6 @@ html_meta = f"""
 
 st.markdown(html_meta, unsafe_allow_html=True)
 
-st.write("teste")
 
 # =========================
 # EVOLUÇÃO
