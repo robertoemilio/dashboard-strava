@@ -257,27 +257,30 @@ km_semana = df["distance_km"].tail(7).sum()
 
 progresso = min(km_semana / meta_km, 1)
 
-st.markdown(f"""
-<div class="goal-container">
+st.markdown(
+    f"""
+    <div class="goal-container">
 
-    <div class="goal-title">
-        🎯 Meta semanal
-    </div>
+        <div class="goal-title">
+            🎯 Meta semanal
+        </div>
 
-    <div class="goal-text">
-        {km_semana:.1f} / {meta_km} km
-    </div>
+        <div class="goal-text">
+            {km_semana:.1f} / {meta_km} km
+        </div>
 
-    <div class="goal-bar-bg">
+        <div class="goal-bar-bg">
 
-        <div class="goal-bar-fill"
-             style="width:{progresso*100}%">
+            <div class="goal-bar-fill"
+                 style="width:{progresso*100}%">
+            </div>
+
         </div>
 
     </div>
-
-</div>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
 # =========================
 # EVOLUÇÃO
