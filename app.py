@@ -185,7 +185,7 @@ else:
 # SPARKLINE DATA
 # =========================
 
-spark_data = df_group["distance_km"].tail(7).tolist()
+spark_data = df["distance_km"].tail(7).tolist()
 
 sparkline = gerar_sparkline(spark_data)
 
