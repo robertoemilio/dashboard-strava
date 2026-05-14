@@ -269,16 +269,13 @@ st.markdown(f"""
     </div>
 
     <div class="goal-bar-bg">
-
         <div class="goal-bar-fill"
              style="width:{progresso*100}%">
         </div>
-
     </div>
 
 </div>
 """, unsafe_allow_html=True)
-
 
 
 # =========================
