@@ -72,3 +72,67 @@ div[data-testid="metric-container"] div {
     background: #FC5200;
     border-radius: 10px;
 }
+
+/* =========================
+   CARDS PREMIUM
+========================= */
+
+.card {
+    background: linear-gradient(145deg, #161b22, #1f2630);
+
+    padding: 25px;
+
+    border-radius: 20px;
+
+    border: 1px solid #30363d;
+
+    transition: all 0.3s ease;
+
+    box-shadow:
+        0 4px 20px rgba(0,0,0,0.4);
+
+    text-align: center;
+}
+
+/* HOVER */
+
+.card:hover {
+
+    transform: translateY(-5px);
+
+    border-color: #FC5200;
+
+    box-shadow:
+        0 8px 30px rgba(252,82,0,0.35);
+}
+
+/* ÍCONE */
+
+.card-icon {
+
+    font-size: 40px;
+
+    margin-bottom: 10px;
+}
+
+/* TÍTULO */
+
+.card-title {
+
+    color: #8b949e;
+
+    font-size: 16px;
+
+    margin-bottom: 10px;
+}
+
+/* VALOR */
+
+.card-value {
+
+    color: white;
+
+    font-size: 34px;
+
+    font-weight: 800;
+}
