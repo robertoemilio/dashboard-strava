@@ -13,6 +13,58 @@ from utils import analisar_atividade
 import plotly.graph_objects as go
 import numpy as np
 
+# =========================
+# PARA LER O CSS
+# =========================
+def load_css():
+    with open("style.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+load_css()
+#---------------------------------------
+
+# =========================
+# TEMA DOS GRÁFICOS PLOTLY
+# =========================
+def aplicar_tema_plotly(fig):
+
+    fig.update_layout(
+        paper_bgcolor="#0e1117",
+        plot_bgcolor="#0e1117",
+
+        font=dict(
+            color="white",
+            size=14
+        ),
+
+        title_font=dict(
+            size=24,
+            color="#FC5200"
+        ),
+
+        legend=dict(
+            bgcolor="#161b22",
+            bordercolor="#30363d",
+            borderwidth=1
+        ),
+
+        xaxis=dict(
+            showgrid=False,
+            zeroline=False
+        ),
+
+        yaxis=dict(
+            gridcolor="#30363d",
+            zeroline=False
+        ),
+
+        margin=dict(l=20, r=20, t=60, b=20)
+    )
+
+    return fig
+#---------------------------------------
+
+
 if st.button("🔄 Atualizar dados"):
     st.cache_data.clear()
     
@@ -121,6 +173,9 @@ df_group = df.groupby(df["start_date"].dt.date)["distance_km"].sum().reset_index
 df_group["acumulado"] = df_group["distance_km"].cumsum()
 
 fig_line = px.line(df_group, x="start_date", y=["distance_km", "acumulado"], markers=True)
+
+fig_line = aplicar_tema_plotly(fig_line)
+
 st.plotly_chart(fig_line, use_container_width=True)
 
 # =========================
@@ -183,6 +238,8 @@ fig_week.update_traces(
     marker=dict(size=12, symbol="diamond"),
     line=dict(dash="dash")
 )
+
+fig_week = aplicar_tema_plotly(fig_week)
 
 st.plotly_chart(fig_week, use_container_width=True)
 
@@ -302,7 +359,11 @@ if len(df_week) >= 4:
     ])
 
     st.dataframe(df_plano)
-    st.plotly_chart(px.bar(df_plano, x="Dia", y="KM"), use_container_width=True)
+    fig_plano = px.bar(df_plano, x="Dia", y="KM")
+
+fig_plano = aplicar_tema_plotly(fig_plano)
+
+st.plotly_chart(fig_plano, use_container_width=True)
 
 # =========================
 # ANÁLISE AVANÇADA
@@ -368,13 +429,38 @@ st.subheader("🚴‍♂️ Análise por pedal")
 df_pedal = df.sort_values("start_date") # esta obedece o filtro ou seja se colocar todas vao todas atividades se for 7 dias vai todas dos ultimos 7 dias
 
 st.subheader("📏 Distância por pedal")
-st.plotly_chart(px.bar(df_pedal, x="start_date", y="distance_km"), use_container_width=True)
+fig_dist = px.bar(
+    df_pedal,
+    x="start_date",
+    y="distance_km"
+)
+
+fig_dist = aplicar_tema_plotly(fig_dist)
+
+st.plotly_chart(fig_dist, use_container_width=True)
 
 st.subheader("⚡ Velocidade por pedal")
-st.plotly_chart(px.line(df_pedal, x="start_date", y="speed_kmh", markers=True), use_container_width=True)
+fig_speed = px.line(
+    df_pedal,
+    x="start_date",
+    y="speed_kmh",
+    markers=True
+)
+
+fig_speed = aplicar_tema_plotly(fig_speed)
+
+st.plotly_chart(fig_speed, use_container_width=True)
 
 st.subheader("⛰️ Elevação por pedal")
-st.plotly_chart(px.bar(df_pedal, x="start_date", y="total_elevation_gain"), use_container_width=True)
+fig_elev = px.bar(
+    df_pedal,
+    x="start_date",
+    y="total_elevation_gain"
+)
+
+fig_elev = aplicar_tema_plotly(fig_elev)
+
+st.plotly_chart(fig_elev, use_container_width=True)
 
 # =========================
 # TABELA
@@ -530,6 +616,7 @@ trecho_filtrado = [v for v in trecho_filtrado if v <= limite_superior]
 # 3️⃣ cálculo final
 pacing_ideal = np.median(trecho_filtrado)
 
+fig = aplicar_tema_plotly(fig)
 
 fig.update_layout(
     title="📈 Velocidade ao longo do percurso",

@@ -1,0 +1,74 @@
+/* ===== FUNDO GERAL ===== */
+.stApp {
+    background-color: #0e1117;
+    color: #FAFAFA;
+}
+
+/* ===== SIDEBAR ===== */
+section[data-testid="stSidebar"] {
+    background-color: #161b22;
+    border-right: 1px solid #30363d;
+}
+
+/* ===== TÍTULO ===== */
+h1 {
+    color: #FC5200;
+    font-weight: 800;
+}
+
+/* ===== SUBTÍTULOS ===== */
+h2, h3 {
+    color: #FAFAFA;
+    font-weight: 600;
+}
+
+/* ===== CARDS KPI ===== */
+div[data-testid="metric-container"] {
+    background-color: #161b22;
+    border: 1px solid #30363d;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+/* ===== LABEL KPI ===== */
+div[data-testid="metric-container"] label {
+    color: #8b949e;
+}
+
+/* ===== VALOR KPI ===== */
+div[data-testid="metric-container"] div {
+    color: #FAFAFA;
+}
+
+/* ===== TABELAS ===== */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ===== BOTÕES ===== */
+.stButton>button {
+    background-color: #FC5200;
+    color: white;
+    border-radius: 10px;
+    border: none;
+    padding: 10px 20px;
+    font-weight: bold;
+}
+
+/* ===== SELECTBOX ===== */
+.stSelectbox div[data-baseweb="select"] {
+    background-color: #161b22;
+    color: white;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #FC5200;
+    border-radius: 10px;
+}
