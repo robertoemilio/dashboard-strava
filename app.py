@@ -72,24 +72,23 @@ def aplicar_tema_plotly(fig):
 # SPARKLINE
 # =========================
 
-def gerar_sparkline(data):
+#def gerar_sparkline(data):
 
-    blocks = "▁▂▃▄▅▆▇█"
+#    blocks = "▁▂▃▄▅▆▇█"
 
-    mn = min(data)
-    mx = max(data)
+#    mn = min(data)
+#    mx = max(data)
 
-    if mx - mn == 0:
-        return blocks[0] * len(data)
+#    if mx - mn == 0:
+#        return blocks[0] * len(data)
 
-    spark = ""
+#    spark = ""
 
-    for v in data:
-        idx = int((v - mn) / (mx - mn) * (len(blocks)-1))
-        spark += blocks[idx]
+#    for v in data:
+#        idx = int((v - mn) / (mx - mn) * (len(blocks)-1))
+#        spark += blocks[idx]
 
-    return spark
-
+#    return spark
 
 #---------------------------------------
 
@@ -185,9 +184,9 @@ else:
 # SPARKLINE DATA
 # =========================
 
-spark_data = df["distance_km"].tail(7).tolist()
+#spark_data = df["distance_km"].tail(7).tolist()
 
-sparkline = gerar_sparkline(spark_data)
+#sparkline = gerar_sparkline(spark_data)
 
 # =========================
 # KPIs
@@ -216,7 +215,6 @@ with col1:
         <div class="card-icon">🚴</div>
         <div class="card-title">Distância Total</div>
         <div class="card-value">{dist_total} km</div>
-        <div class="sparkline">{sparkline}</div>
     </div>
     ''', unsafe_allow_html=True)
 
@@ -226,7 +224,6 @@ with col2:
         <div class="card-icon">🕒</div>
         <div class="card-title">Tempo Total</div>
         <div class="card-value">{tempo_total} min</div>
-        <div class="sparkline">{sparkline}</div>
     </div>
     ''', unsafe_allow_html=True)
 
@@ -236,7 +233,6 @@ with col3:
         <div class="card-icon">⚡</div>
         <div class="card-title">Velocidade Média</div>
         <div class="card-value">{vel_media} km/h</div>
-        <div class="sparkline">{sparkline}</div>
     </div>
     ''', unsafe_allow_html=True)
 
@@ -248,6 +244,41 @@ with col4:
         <div class="card-value">{alt_total} m</div>
     </div>
     ''', unsafe_allow_html=True)
+
+
+
+# =========================
+# META SEMANAL
+# =========================
+
+meta_km = 250
+
+km_semana = df["distance_km"].tail(7).sum()
+
+progresso = min(km_semana / meta_km, 1)
+
+st.markdown(f"""
+<div class="goal-container">
+
+    <div class="goal-title">
+        🎯 Meta semanal
+    </div>
+
+    <div class="goal-text">
+        {km_semana:.1f} / {meta_km} km
+    </div>
+
+    <div class="goal-bar-bg">
+
+        <div class="goal-bar-fill"
+             style="width:{progresso*100}%">
+        </div>
+
+    </div>
+
+</div>
+""", unsafe_allow_html=True)
+
 
 
 # =========================
