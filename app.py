@@ -14,6 +14,7 @@ import plotly.graph_objects as go
 import folium
 from streamlit_folium import st_folium
 import polyline
+from branca.colormap import LinearColormap
 import numpy as np
 
 # =========================
@@ -498,7 +499,7 @@ atividade_id = df[df["label"] == atividade_escolhida]["id"].values[0]
 streams = get_activity_streams(atividade_id)
 
 # ===============================
-# 🗺️ MAPA DO PEDAL
+# 🗺️ MAPA PREMIU DO PEDAL
 # ===============================
 
 polyline_map = get_activity_map(atividade_id)
@@ -507,26 +508,92 @@ if polyline_map:
 
     pontos = polyline.decode(polyline_map)
 
+    # ===============================
+    # CRIAR MAPA DARK
+    # ===============================
+
     mapa = folium.Map(
         location=pontos[0],
         zoom_start=13,
         tiles="CartoDB dark_matter"
     )
 
-    folium.PolyLine(
-        pontos,
-        color="#FC5200",
-        weight=5,
-        opacity=0.8
+    # ===============================
+    # HEATMAP POR VELOCIDADE
+    # ===============================
+
+    velocidade = streams["velocity_smooth"]["data"]
+
+    velocidade_kmh = [v * 3.6 for v in velocidade]
+
+    vmin = min(velocidade_kmh)
+    vmax = max(velocidade_kmh)
+
+    colormap = LinearColormap(
+        colors=["red", "yellow", "green"],
+        vmin=vmin,
+        vmax=vmax
+    )
+
+    # ===============================
+    # DESENHAR TRECHO COLORIDO
+    # ===============================
+
+    for i in range(len(pontos) - 1):
+
+        cor = colormap(velocidade_kmh[min(i, len(velocidade_kmh)-1)])
+
+        folium.PolyLine(
+            [pontos[i], pontos[i+1]],
+            color=cor,
+            weight=5,
+            opacity=0.9
+        ).add_to(mapa)
+
+   # ===============================
+    # MARCADOR INÍCIO
+    # ===============================
+
+    folium.Marker(
+        pontos[0],
+        tooltip="Início",
+        icon=folium.Icon(color="green", icon="play")
     ).add_to(mapa)
 
-    st.subheader("🗺️ Mapa do percurso")
+    # ===============================
+    # MARCADOR FINAL
+    # ===============================
+
+    folium.Marker(
+        pontos[-1],
+        tooltip="Fim",
+        icon=folium.Icon(color="red", icon="stop")
+    ).add_to(mapa)
+
+    # ===============================
+    # LEGENDA
+    # ===============================
+
+    colormap.caption = "Velocidade (km/h)"
+    colormap.add_to(mapa)
+
+    # ===============================
+    # TÍTULO
+    # ===============================
+
+    st.subheader("🗺️ Mapa Premium do Percurso")
+
+   # ===============================
+    # EXIBIR MAPA
+    # ===============================
 
     st_folium(
         mapa,
         width=1200,
-        height=500
+        height=600,
+        returned_objects=[]
     )
+
 
 
 # 🔹 AQUI entra a análise
