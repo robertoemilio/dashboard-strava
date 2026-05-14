@@ -247,38 +247,6 @@ with col4:
 
 
 
-# =========================================================
-# META SEMANAL
-# =========================================================
-
-meta_km = 250
-
-km_semana = df["distance_km"].tail(7).sum()
-
-progresso = min((km_semana / meta_km) * 100, 100)
-
-html_meta = f"""
-<div class="goal-container">
-
-
-    <div class="goal-text">
-        {km_semana:.1f} / {meta_km} km
-    </div>
-
-    <div class="goal-bar-bg">
-
-        <div class="goal-bar-fill"
-             style="width:{progresso}%;">
-        </div>
-
-    </div>
-
-</div>
-"""
-
-st.markdown(html_meta, unsafe_allow_html=True)
-
-
 # =========================
 # EVOLUÇÃO
 # =========================
