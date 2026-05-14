@@ -256,7 +256,13 @@ pr_velocidade = df["speed_kmh"].max()
 
 pr_altimetria = df["total_elevation_gain"].max()
 
-pr_tempo = df["moving_time_min"].max()
+# =========================================================
+# 🚴 LONGÃO EM HORAS
+# =========================================================
+
+pr_tempo_min = df["moving_time_min"].max()
+
+pr_tempo_horas = pr_tempo_min / 60
 
 # =========================================================
 # LINHA DOS CARDS
@@ -312,7 +318,7 @@ with col4:
     <div class="pr-card">
         <div class="pr-icon">🚴</div>
         <div class="pr-title">Longão</div>
-        <div class="pr-value">{pr_tempo:.0f} min</div>
+        <div class="pr-value"> {pr_tempo_horas:.1f} h</div>
     </div>
     ''', unsafe_allow_html=True)
 
