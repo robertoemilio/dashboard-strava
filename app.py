@@ -226,6 +226,7 @@ with col2:
         <div class="card-icon">🕒</div>
         <div class="card-title">Tempo Total</div>
         <div class="card-value">{tempo_total} min</div>
+        <div class="sparkline">{sparkline}</div>
     </div>
     ''', unsafe_allow_html=True)
 
@@ -235,6 +236,7 @@ with col3:
         <div class="card-icon">⚡</div>
         <div class="card-title">Velocidade Média</div>
         <div class="card-value">{vel_media} km/h</div>
+        <div class="sparkline">{sparkline}</div>
     </div>
     ''', unsafe_allow_html=True)
 
