@@ -161,12 +161,60 @@ else:
 # =========================
 # KPIs
 # =========================
+#col1, col2, col3, col4 = st.columns(4)
+
+#col1.metric("Distância Total (km)", round(df["distance_km"].sum(), 2))
+#col2.metric("Tempo Total (min)", round(df["moving_time_min"].sum(), 2))
+#col3.metric("Velocidade Média (km/h)", round(df["speed_kmh"].mean(), 2))
+#col4.metric("Altimetria (m)", round(df["total_elevation_gain"].sum(), 2))
+
+# =========================
+# KPIs PREMIUM
+# =========================
+
+dist_total = round(df["distance_km"].sum(), 2)
+tempo_total = round(df["moving_time_min"].sum(), 2)
+vel_media = round(df["speed_kmh"].mean(), 2)
+alt_total = round(df["total_elevation_gain"].sum(), 2)
+
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("Distância Total (km)", round(df["distance_km"].sum(), 2))
-col2.metric("Tempo Total (min)", round(df["moving_time_min"].sum(), 2))
-col3.metric("Velocidade Média (km/h)", round(df["speed_kmh"].mean(), 2))
-col4.metric("Altimetria (m)", round(df["total_elevation_gain"].sum(), 2))
+with col1:
+    st.markdown(f'''
+    <div class="card">
+        <div class="card-icon">🚴</div>
+        <div class="card-title">Distância Total</div>
+        <div class="card-value">{dist_total} km</div>
+    </div>
+    ''', unsafe_allow_html=True)
+
+with col2:
+    st.markdown(f'''
+    <div class="card">
+        <div class="card-icon">🕒</div>
+        <div class="card-title">Tempo Total</div>
+        <div class="card-value">{tempo_total} min</div>
+    </div>
+    ''', unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f'''
+    <div class="card">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Velocidade Média</div>
+        <div class="card-value">{vel_media} km/h</div>
+    </div>
+    ''', unsafe_allow_html=True)
+
+with col4:
+    st.markdown(f'''
+    <div class="card">
+        <div class="card-icon">⛰️</div>
+        <div class="card-title">Altimetria</div>
+        <div class="card-value">{alt_total} m</div>
+    </div>
+    ''', unsafe_allow_html=True)
+
 
 # =========================
 # EVOLUÇÃO
