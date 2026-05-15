@@ -110,7 +110,7 @@ st.title("🚴‍♂️ Dashboard de Ciclismo - Strava")
 st.subheader("📊 Resumo do período")
 
 dist_total = round(df["distance_km"].sum(), 2)
-tempo_total = round(df["moving_time_min"].sum(), 2)
+tempo_total = (round(df["moving_time_min"].sum(), 2))/60
 vel_media = round(df["speed_kmh"].mean(), 2)
 alt_total = round(df["total_elevation_gain"].sum(), 2)
 
@@ -118,7 +118,7 @@ col1, col2, col3, col4 = st.columns(4)
 
 kpis = [
     (col1, "🚴", "Distância Total",   f"{dist_total} km"),
-    (col2, "🕒", "Tempo Total",       f"{tempo_total} min"),
+    (col2, "🕒", "Tempo Total",       f"{tempo_total:.1f} h"),
     (col3, "⚡", "Velocidade Média",  f"{vel_media} km/h"),
     (col4, "⛰️", "Altimetria",        f"{alt_total} m"),
 ]
