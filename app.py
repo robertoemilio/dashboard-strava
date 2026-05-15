@@ -202,7 +202,14 @@ else:
 # =========================
 
 dist_total = round(df["distance_km"].sum(), 2)
+
+# =========================================================
+# TEMPO TOTAL EM HORAS
+# =========================================================
 tempo_total = round(df["moving_time_min"].sum(), 2)
+tempo_total_h = tempo_total / 60
+# =========================================================
+
 vel_media = round(df["speed_kmh"].mean(), 2)
 alt_total = round(df["total_elevation_gain"].sum(), 2)
 
@@ -222,7 +229,7 @@ with col2:
     <div class="card">
         <div class="card-icon">🕒</div>
         <div class="card-title">Tempo Total</div>
-        <div class="card-value">{tempo_total} min</div>
+        <div class="card-value">{tempo_total_h} h</div>
     </div>
     ''', unsafe_allow_html=True)
 
