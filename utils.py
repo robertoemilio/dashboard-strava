@@ -1,111 +1,154 @@
 import pandas as pd
+import streamlit as st
 from strava_client import get_activities
 
-def load_activities():
+
+# =========================
+# CARREGAMENTO DE DADOS
+# =========================
+
+@st.cache_data(ttl=600)
+def load_activities() -> list[dict]:
+    
+    # Busca as atividades da Strava e cacheia por 10 minutos.
+    # O cache era feito no app.py — centralizado aqui para não depender
+    # de quem chama a função.
+    
     return get_activities()
 
-# --- Adicionei esse ponto para gerar uma ANÁLISE AUTOMÁTICA DOS TREINOS - Roberto - 30-03-2026
 
-def gerar_analise(df):
+# =========================
+# ANÁLISE SEMANAL
+# =========================
+
+def _calcular_variacao(dist_ultima: float, dist_anterior: float) -> float:
+    # Calcula a variação percentual de volume entre duas semanas.
+    if dist_anterior <= 0:
+        return 0.0
+    return ((dist_ultima - dist_anterior) / dist_anterior) * 100
+
+
+def gerar_analise(df: pd.DataFrame) -> str:
+    
+    # Compara o volume da última semana com a semana anterior e
+    # retorna uma mensagem de análise com recomendação.
+    
     if df.empty:
         return "Sem dados suficientes para análise."
 
-    ultima_semana = df[df["start_date"] >= df["start_date"].max() - pd.Timedelta(days=7)]
+    data_max = df["start_date"].max()
+
+    ultima_semana = df[df["start_date"] >= data_max - pd.Timedelta(days=7)]
     semana_anterior = df[
-        (df["start_date"] < df["start_date"].max() - pd.Timedelta(days=7)) &
-        (df["start_date"] >= df["start_date"].max() - pd.Timedelta(days=14))
+        (df["start_date"] >= data_max - pd.Timedelta(days=14)) &
+        (df["start_date"] <  data_max - pd.Timedelta(days=7))
     ]
 
-    dist_ultima = ultima_semana["distance_km"].sum()
+    dist_ultima   = ultima_semana["distance_km"].sum()
     dist_anterior = semana_anterior["distance_km"].sum()
+    dias_ativos   = ultima_semana["start_date"].dt.date.nunique()
+    variacao      = _calcular_variacao(dist_ultima, dist_anterior)
 
-    dias_ativos = ultima_semana["start_date"].dt.date.nunique()
+    linhas = ["🧠 **Análise Inteligente**\n"]
 
-    variacao = 0
-    if dist_anterior > 0:
-        variacao = ((dist_ultima - dist_anterior) / dist_anterior) * 100
-
-    mensagem = "🧠 **Análise Inteligente**\n\n"
-
-    # 📈 Evolução
+    # Evolução de volume
     if variacao > 10:
-        mensagem += f"📈 Você aumentou {variacao:.1f}% seu volume semanal.\n"
+        linhas.append(f"📈 Você aumentou {variacao:.1f}% seu volume semanal.")
     elif variacao < -10:
-        mensagem += f"📉 Seu volume caiu {abs(variacao):.1f}%.\n"
+        linhas.append(f"📉 Seu volume caiu {abs(variacao):.1f}%.")
     else:
-        mensagem += "📊 Seu volume está estável.\n"
+        linhas.append("📊 Seu volume está estável.")
 
-    # 🚴 Frequência
-    mensagem += f"🚴 Você pedalou {dias_ativos} dias na última semana.\n"
+    # Frequência
+    linhas.append(f"🚴 Você pedalou {dias_ativos} dia(s) na última semana.")
 
-    # ⚠️ Overtraining
+    # Alerta de overtraining
     if variacao > 30:
-        mensagem += "⚠️ Risco de overtraining! Reduza intensidade.\n"
+        linhas.append("⚠️ Risco de overtraining! Considere reduzir a intensidade.")
 
-    # 💡 Recomendação
-    mensagem += "\n💡 **Recomendação:**\n"
-
+    # Recomendação
+    linhas.append("\n💡 **Recomendação:**")
     if variacao > 20:
-        mensagem += "Faça treinos leves ou descanso ativo nos próximos dias.\n"
+        linhas.append("Faça treinos leves ou descanso ativo nos próximos dias.")
     elif variacao < -20:
-        mensagem += "Você pode aumentar o volume gradualmente.\n"
+        linhas.append("Você pode aumentar o volume gradualmente.")
     else:
-        mensagem += "Mantenha consistência — você está no caminho certo.\n"
+        linhas.append("Mantenha consistência — você está no caminho certo.")
 
-    # 🎯 Meta sugerida
+    # Meta sugerida (+/- 10% do volume atual)
     meta_min = dist_ultima * 0.9
     meta_max = dist_ultima * 1.1
+    linhas.append(f"\n🎯 Meta sugerida: entre {meta_min:.1f} km e {meta_max:.1f} km na próxima semana.")
 
-    mensagem += f"\n🎯 Meta sugerida: entre {meta_min:.1f} km e {meta_max:.1f} km na próxima semana.\n"
+    return "\n".join(linhas)
 
-    return mensagem
 
-#------------------
-#esse bloco coloquei para testar analise individual de atividade - Roberto - 01/04/2026
-def analisar_atividade(streams):
-    velocidade = streams["velocity_smooth"]["data"]
-    distancia = streams["distance"]["data"]
+# =========================
+# ANÁLISE DE ATIVIDADE INDIVIDUAL
+# =========================
 
-    velocidade_kmh = [v * 3.6 for v in velocidade]
-
-    # Dividir em 3 partes
+def _segmentar_velocidade(velocidade_kmh: list[float]) -> tuple[list, list, list]:
+    # Divide a lista de velocidades em início, meio e fim (terços iguais).
     n = len(velocidade_kmh)
-    inicio = velocidade_kmh[:n//3]
-    meio = velocidade_kmh[n//3:2*n//3]
-    fim = velocidade_kmh[2*n//3:]
+    return (
+        velocidade_kmh[: n // 3],
+        velocidade_kmh[n // 3 : 2 * n // 3],
+        velocidade_kmh[2 * n // 3 :],
+    )
+
+
+def _detectar_queda(
+    velocidade_kmh: list[float],
+    distancia: list[float],
+    media_inicio: float,
+) -> float | None:
+    
+    # Retorna o km onde a velocidade caiu abaixo de 80% da média inicial,
+    # ou None se não houver queda significativa.
+    
+    for i, v in enumerate(velocidade_kmh):
+        if v < media_inicio * 0.8:
+            return distancia[i] / 1000
+    return None
+
+
+def analisar_atividade(streams: dict) -> str:
+    
+    # Analisa os streams de velocidade de uma atividade e retorna
+    # um texto com diagnóstico de ritmo e fadiga.
+    
+    velocidade_kmh = [v * 3.6 for v in streams["velocity_smooth"]["data"]]
+    distancia      = streams["distance"]["data"]
+    n              = len(velocidade_kmh)
+
+    inicio, meio, fim = _segmentar_velocidade(velocidade_kmh)
 
     media_inicio = sum(inicio) / len(inicio)
-    media_meio = sum(meio) / len(meio)
-    media_fim = sum(fim) / len(fim)
+    media_meio   = sum(meio)   / len(meio)
+    media_fim    = sum(fim)    / len(fim)
+    media_geral  = sum(velocidade_kmh) / n
 
-    mensagem = "🚴 **Análise da atividade**\n\n"
+    linhas = [
+        "🚴 **Análise da atividade**\n",
+        f"Velocidade média geral: {media_geral:.1f} km/h\n",
+        f"📊 Início: {media_inicio:.1f} km/h",
+        f"📊 Meio:   {media_meio:.1f} km/h",
+        f"📊 Final:  {media_fim:.1f} km/h\n",
+    ]
 
-    mensagem += f"Velocidade média geral: {sum(velocidade_kmh)/n:.1f} km/h\n\n"
-
-    mensagem += f"📊 Início: {media_inicio:.1f} km/h\n"
-    mensagem += f"📊 Meio: {media_meio:.1f} km/h\n"
-    mensagem += f"📊 Final: {media_fim:.1f} km/h\n\n"
-
-    # Detectar queda progressiva
+    # Queda progressiva
     if media_fim < media_inicio * 0.85:
-        # descobrir onde começou a queda real
-        queda_index = None
-        for i in range(len(velocidade_kmh)):
-            if velocidade_kmh[i] < media_inicio * 0.8:
-                queda_index = i
-                break
-
-        if queda_index:
-            km_queda = distancia[queda_index] / 1000
-            mensagem += f"📉 Queda consistente de performance por volta de {km_queda:.1f} km\n"
+        km_queda = _detectar_queda(velocidade_kmh, distancia, media_inicio)
+        if km_queda is not None:
+            linhas.append(f"📉 Queda de performance por volta de {km_queda:.1f} km")
     else:
-        mensagem += "💪 Ritmo consistente durante o treino\n"
+        linhas.append("💪 Ritmo consistente durante o treino")
 
-    # Insight inteligente
+    # Insights de fadiga e pacing
     if media_meio > media_fim:
-        mensagem += "\n⚠️ Indício de fadiga progressiva no final do treino\n"
+        linhas.append("\n⚠️ Indício de fadiga progressiva no final do treino")
 
     if media_inicio > media_meio:
-        mensagem += "⚠️ Você pode ter começado forte demais\n"
+        linhas.append("⚠️ Você pode ter começado forte demais")
 
-    return mensagem
+    return "\n".join(linhas)

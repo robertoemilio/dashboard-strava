@@ -15,7 +15,6 @@ import folium
 from streamlit_folium import st_folium
 import polyline
 from branca.colormap import LinearColormap
-import numpy as np
 
 # =========================
 # PARA LER O CSS
