@@ -229,7 +229,7 @@ with col2:
     <div class="card">
         <div class="card-icon">🕒</div>
         <div class="card-title">Tempo Total</div>
-        <div class="card-value">{tempo_total_h} h</div>
+        <div class="card-value">{tempo_total_h:.1f} h</div>
     </div>
     ''', unsafe_allow_html=True)
 
