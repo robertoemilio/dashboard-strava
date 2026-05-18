@@ -3,6 +3,7 @@ import pandas as pd
 import streamlit as st
 from strava_client import get_activities
 
+#Corrigindo erros
 
 @st.cache_data(ttl=900)
 def load_activities() -> list[dict]:
