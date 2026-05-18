@@ -244,7 +244,13 @@ else:
     )
  
     seg      = opcoes[segmento_escolhido]
-    efforts  = get_segment_efforts(seg["segment_id"])
-    df_seg   = analisar_evolucao_segmento(efforts)
  
+    # Passa os IDs de todas as atividades para varrer localmente
+    # sem depender do endpoint /all_efforts que exige escopo extra
+    activity_ids = tuple(df["id"].astype(int).tolist())
+ 
+    with st.spinner("Buscando suas passagens por este segmento..."):
+        efforts  = get_segment_efforts(seg["segment_id"], activity_ids)
+ 
+    df_seg   = analisar_evolucao_segmento(efforts)
     render_evolucao_segmento(df_seg, seg["name"])

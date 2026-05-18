@@ -106,27 +106,34 @@ def get_activity_segments(activity_id: int) -> list[dict]:
  
  
 @st.cache_data(ttl=600)
-def get_segment_efforts(segment_id: int) -> list[dict]:
+def get_segment_efforts(segment_id: int, activity_ids: tuple[int, ...]) -> list[dict]:
     """
-    Retorna todas as passagens do atleta por um segmento específico,
-    ordenadas da mais antiga para a mais recente.
-    Cacheado por 10 minutos para evitar chamadas repetidas ao trocar de segmento.
+    Busca o esforço naquele segmento em cada atividade da lista.
+    Usa apenas o endpoint /activities/{id}, que não exige escopos extras.
+    Recebe activity_ids como tupla para ser compatível com o cache do Streamlit.
     """
     all_efforts = []
-    page        = 1
  
-    while True:
-        res = requests.get(
-            f"{_STRAVA_API_BASE}/segments/{segment_id}/all_efforts",
-            headers=_auth_headers(),
-            params={"per_page": 50, "page": page},
-            timeout=10,
-        )
-        res.raise_for_status()
-        batch = res.json()
-        if not batch:
-            break
-        all_efforts.extend(batch)
-        page += 1
+    for act_id in activity_ids:
+        try:
+            res = requests.get(
+                f"{_STRAVA_API_BASE}/activities/{act_id}",
+                headers=_auth_headers(),
+                timeout=10,
+            )
+            res.raise_for_status()
+            efforts = res.json().get("segment_efforts", [])
+ 
+            for e in efforts:
+                if e["segment"]["id"] == segment_id:
+                    all_efforts.append({
+                        "start_date_local": e["start_date_local"],
+                        "elapsed_time":     e["elapsed_time"],
+                        "distance":         e["segment"]["distance"],
+                    })
+ 
+        except requests.HTTPError:
+            # Atividade inacessível (privada, deletada) — ignora e continua
+            continue
  
     return sorted(all_efforts, key=lambda e: e["start_date_local"])
