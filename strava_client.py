@@ -122,13 +122,18 @@ def get_segment_efforts(segment_id: int) -> list[dict]:
             params={"per_page": 50, "page": page},
             timeout=10,
         )
-        print("STATUS CODE:", res.status_code)
-        print("RESPONSE:", res.text)
-        res.raise_for_status()
-        batch = res.json()
-        if not batch:
-            break
-        all_efforts.extend(batch)
-        page += 1
+        #res.raise_for_status()
+        if res.status_code != 200:
+            st.error(f"Erro HTTP: {res.status_code}")
+            st.write(res.text)
+            st.stop()        
+    
+    return res.json()
+    #apagar
+        #batch = res.json()
+        #if not batch:
+        #    break
+        #all_efforts.extend(batch)
+        #page += 1
 
-    return sorted(all_efforts, key=lambda e: e["start_date_local"])
+    #return sorted(all_efforts, key=lambda e: e["start_date_local"])
