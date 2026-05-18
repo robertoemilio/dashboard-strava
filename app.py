@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 
-# ── Configuração (deve ser a primeira chamada Streamlit) ──────────────────────
-st.set_page_config(page_title="Dashboard Ciclismo", layout="wide")
 
 # ── Módulos internos ──────────────────────────────────────────────────────────
 from data.loader import build_dataframe, apply_period_filter
@@ -28,6 +26,8 @@ from ui.charts import (
 )
 from ui.map_view import render_mapa
 
+# ── Configuração (deve ser a primeira chamada Streamlit) ──────────────────────
+st.set_page_config(page_title="Dashboard Ciclismo", layout="wide")
 
 # ── Estilo ────────────────────────────────────────────────────────────────────
 load_css()
