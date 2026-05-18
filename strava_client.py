@@ -78,3 +78,55 @@ def get_activity_map(activity_id: int) -> str | None:
                        headers=_auth_headers(), timeout=10)
     res.raise_for_status()
     return res.json().get("map", {}).get("summary_polyline")
+
+
+def get_activity_segments(activity_id: int) -> list[dict]:
+    """
+    Retorna os segment_efforts de uma atividade específica.
+    Cada item contém nome, id do segmento, tempo e data do esforço.
+    """
+    res = requests.get(
+        f"{_STRAVA_API_BASE}/activities/{activity_id}",
+        headers=_auth_headers(),
+        timeout=10,
+    )
+    res.raise_for_status()
+    efforts = res.json().get("segment_efforts", [])
+
+    return [
+        {
+            "segment_id":   e["segment"]["id"],
+            "name":         e["segment"]["name"],
+            "elapsed_time": e["elapsed_time"],
+            "distance_m":   e["segment"]["distance"],
+            "date":         e["start_date_local"],
+        }
+        for e in efforts
+    ]
+
+
+@st.cache_data(ttl=600)
+def get_segment_efforts(segment_id: int) -> list[dict]:
+    """
+    Retorna todas as passagens do atleta por um segmento específico,
+    ordenadas da mais antiga para a mais recente.
+    Cacheado por 10 minutos para evitar chamadas repetidas ao trocar de segmento.
+    """
+    all_efforts = []
+    page        = 1
+
+    while True:
+        res = requests.get(
+            f"{_STRAVA_API_BASE}/segments/{segment_id}/all_efforts",
+            headers=_auth_headers(),
+            params={"per_page": 50, "page": page},
+            timeout=10,
+        )
+        res.raise_for_status()
+        batch = res.json()
+        if not batch:
+            break
+        all_efforts.extend(batch)
+        page += 1
+
+    return sorted(all_efforts, key=lambda e: e["start_date_local"])

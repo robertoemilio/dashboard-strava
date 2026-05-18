@@ -6,7 +6,7 @@ st.set_page_config(page_title="Dashboard Ciclismo", layout="wide")
 
 # ── Módulos internos ──────────────────────────────────────────────────────────
 from data.loader import build_dataframe, apply_period_filter
-from strava_client import get_activity_streams, get_activity_map
+from strava_client import get_activity_streams, get_activity_map, get_activity_segments, get_segment_efforts
 from analysis.metrics import (
     calcular_volume_semanal,
     prever_proxima_semana,
@@ -14,6 +14,7 @@ from analysis.metrics import (
     calcular_meta,
     analisar_atividade,
     detectar_zonas_fadiga,
+    analisar_evolucao_segmento,
 )
 from ui.theme import load_css
 from ui.kpi_cards import render_kpi_cards, render_pr_cards
@@ -23,6 +24,7 @@ from ui.charts import (
     render_graficos_por_pedal,
     render_plano_semanal,
     render_velocidade_fadiga,
+    render_evolucao_segmento,
 )
 from ui.map_view import render_mapa
 
@@ -220,3 +222,29 @@ st.info(analisar_atividade(streams))
 
 st.subheader("📈 Velocidade ao longo do percurso")
 render_velocidade_fadiga(detectar_zonas_fadiga(streams))
+
+
+# ── Seção 11: Evolução por segmento ──────────────────────────────────────────
+st.subheader("📍 Evolução por segmento")
+st.caption("Selecione um segmento deste percurso para ver como seu tempo evoluiu ao longo das passagens.")
+
+segmentos = get_activity_segments(atividade_id)
+
+if not segmentos:
+    st.info("Nenhum segmento encontrado nesta atividade.")
+else:
+    # Monta as opções do selectbox: "Nome do segmento (X.X km)"
+    opcoes = {
+        f"{s['name']}  ({s['distance_m'] / 1000:.1f} km)": s
+        for s in segmentos
+    }
+
+    segmento_escolhido = st.selectbox(
+        "Segmento", list(opcoes.keys()), key="segmento_sel"
+    )
+
+    seg      = opcoes[segmento_escolhido]
+    efforts  = get_segment_efforts(seg["segment_id"])
+    df_seg   = analisar_evolucao_segmento(efforts)
+
+    render_evolucao_segmento(df_seg, seg["name"])

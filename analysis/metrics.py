@@ -209,3 +209,51 @@ def detectar_zonas_fadiga(streams: dict) -> dict:
         "pacing_ideal":   pacing_ideal,
         "media_geral":    sum(velocidade_kmh) / n,
     }
+
+
+# =========================
+# ANÁLISE DE EVOLUÇÃO POR SEGMENTO
+# =========================
+
+def analisar_evolucao_segmento(efforts: list[dict]) -> pd.DataFrame:
+    """
+    Recebe a lista de esforços de um segmento (retornada por get_segment_efforts)
+    e retorna um DataFrame pronto para plotar, com colunas:
+      - data         : datetime da passagem
+      - tempo_s      : tempo em segundos
+      - tempo_str    : tempo formatado (mm:ss)
+      - velocidade   : velocidade média em km/h
+      - is_pr        : bool, True na passagem mais rápida
+      - variacao_pct : variação percentual em relação ao esforço anterior
+      - tendencia    : valores suavizados por média móvel (3 esforços)
+    """
+    if not efforts:
+        return pd.DataFrame()
+
+    df = pd.DataFrame([
+        {
+            "data":       pd.to_datetime(e["start_date_local"]),
+            "tempo_s":    e["elapsed_time"],
+            "distancia_m": e["distance"],
+        }
+        for e in efforts
+    ]).sort_values("data").reset_index(drop=True)
+
+    # Tempo formatado mm:ss
+    df["tempo_str"] = df["tempo_s"].apply(
+        lambda s: f"{int(s) // 60}:{int(s) % 60:02d}"
+    )
+
+    # Velocidade média km/h
+    df["velocidade"] = (df["distancia_m"] / df["tempo_s"] * 3.6).round(1)
+
+    # PR = menor tempo
+    df["is_pr"] = df["tempo_s"] == df["tempo_s"].min()
+
+    # Variação % em relação ao esforço anterior (tempo menor = melhora = negativo)
+    df["variacao_pct"] = df["tempo_s"].pct_change() * 100
+
+    # Tendência suavizada (média móvel de 3)
+    df["tendencia"] = df["tempo_s"].rolling(window=3, min_periods=1).mean()
+
+    return df
