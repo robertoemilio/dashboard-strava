@@ -1,12 +1,26 @@
+import requests
 import pandas as pd
 import streamlit as st
 from strava_client import get_activities
 
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=900)
 def load_activities() -> list[dict]:
-    """Busca atividades da Strava e cacheia por 10 minutos."""
-    return get_activities()
+    """
+    Busca atividades da Strava e cacheia por 15 minutos —
+    alinhado com a janela de rate limit da API (100 req / 15 min).
+    """
+    try:
+        return get_activities()
+    except requests.HTTPError as e:
+        if e.response is not None and e.response.status_code == 429:
+            st.error(
+                "⏳ Limite de requisições da Strava atingido. "
+                "Aguarde alguns minutos e recarregue a página."
+            )
+        else:
+            st.error(f"Erro ao buscar atividades da Strava: {e}")
+        st.stop()
 
 
 def build_dataframe() -> pd.DataFrame:
