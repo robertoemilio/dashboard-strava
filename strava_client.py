@@ -122,6 +122,8 @@ def get_segment_efforts(segment_id: int) -> list[dict]:
             params={"per_page": 50, "page": page},
             timeout=10,
         )
+        print("STATUS CODE:", res.status_code)
+        print("RESPONSE:", res.text)
         res.raise_for_status()
         batch = res.json()
         if not batch:
