@@ -1,19 +1,19 @@
 import requests
 import streamlit as st
- 
- 
+
+
 # =========================
 # CONFIGURAÇÃO
 # =========================
- 
+
 _STRAVA_TOKEN_URL = "https://www.strava.com/oauth/token"
 _STRAVA_API_BASE  = "https://www.strava.com/api/v3"
- 
- 
+
+
 # =========================
 # AUTENTICAÇÃO (token único por sessão)
 # =========================
- 
+
 @st.cache_data(ttl=3600)
 def _get_access_token() -> str:
     """
@@ -29,24 +29,24 @@ def _get_access_token() -> str:
     res = requests.post(_STRAVA_TOKEN_URL, data=payload, timeout=10)
     res.raise_for_status()
     return res.json()["access_token"]
- 
- 
+
+
 def _auth_headers() -> dict:
     """Retorna o header de autenticação pronto para uso."""
     return {"Authorization": f"Bearer {_get_access_token()}"}
- 
- 
+
+
 # =========================
 # FUNÇÕES PÚBLICAS DA API
 # =========================
- 
+
 def get_activities() -> list[dict]:
     """Busca todas as atividades do atleta, paginando automaticamente."""
     url      = f"{_STRAVA_API_BASE}/athlete/activities"
     headers  = _auth_headers()
     all_data = []
     page     = 1
- 
+
     while True:
         res = requests.get(url, headers=headers,
                            params={"per_page": 50, "page": page}, timeout=10)
@@ -56,10 +56,10 @@ def get_activities() -> list[dict]:
             break
         all_data.extend(batch)
         page += 1
- 
+
     return all_data
- 
- 
+
+
 def get_activity_streams(activity_id: int) -> dict:
     """Retorna os streams de uma atividade (distância, velocidade, altitude, tempo)."""
     res = requests.get(
@@ -70,16 +70,16 @@ def get_activity_streams(activity_id: int) -> dict:
     )
     res.raise_for_status()
     return res.json()
- 
- 
+
+
 def get_activity_map(activity_id: int) -> str | None:
     """Retorna o summary_polyline de uma atividade, ou None se indisponível."""
     res = requests.get(f"{_STRAVA_API_BASE}/activities/{activity_id}",
                        headers=_auth_headers(), timeout=10)
     res.raise_for_status()
     return res.json().get("map", {}).get("summary_polyline")
- 
- 
+
+
 def get_activity_segments(activity_id: int) -> list[dict]:
     """
     Retorna os segment_efforts de uma atividade específica.
@@ -92,7 +92,7 @@ def get_activity_segments(activity_id: int) -> list[dict]:
     )
     res.raise_for_status()
     efforts = res.json().get("segment_efforts", [])
- 
+
     return [
         {
             "segment_id":   e["segment"]["id"],
@@ -103,8 +103,8 @@ def get_activity_segments(activity_id: int) -> list[dict]:
         }
         for e in efforts
     ]
- 
- 
+
+
 @st.cache_data(ttl=600)
 def get_segment_efforts(segment_id: int, activity_ids: tuple[int, ...]) -> list[dict]:
     """
@@ -113,7 +113,7 @@ def get_segment_efforts(segment_id: int, activity_ids: tuple[int, ...]) -> list[
     Recebe activity_ids como tupla para ser compatível com o cache do Streamlit.
     """
     all_efforts = []
- 
+
     for act_id in activity_ids:
         try:
             res = requests.get(
@@ -123,7 +123,7 @@ def get_segment_efforts(segment_id: int, activity_ids: tuple[int, ...]) -> list[
             )
             res.raise_for_status()
             efforts = res.json().get("segment_efforts", [])
- 
+
             for e in efforts:
                 if e["segment"]["id"] == segment_id:
                     all_efforts.append({
@@ -131,9 +131,9 @@ def get_segment_efforts(segment_id: int, activity_ids: tuple[int, ...]) -> list[
                         "elapsed_time":     e["elapsed_time"],
                         "distance":         e["segment"]["distance"],
                     })
- 
+
         except requests.HTTPError:
             # Atividade inacessível (privada, deletada) — ignora e continua
             continue
- 
+
     return sorted(all_efforts, key=lambda e: e["start_date_local"])
