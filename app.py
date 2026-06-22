@@ -14,6 +14,7 @@ from analysis.metrics import (
     calcular_meta,
     analisar_atividade,
     detectar_zonas_fadiga,
+    calcular_zonas,
 )
 from ui.theme import load_css
 from ui.kpi_cards import render_kpi_cards, render_pr_cards
@@ -23,6 +24,7 @@ from ui.charts import (
     render_graficos_por_pedal,
     render_plano_semanal,
     render_velocidade_fadiga,
+    render_zonas_treino,
 )
 from ui.map_view import render_mapa
 
@@ -58,6 +60,15 @@ else:
     dias = dias_custom if periodo == "Personalizado" else int(periodo.split()[0])
     data_limite = pd.Timestamp.now() - pd.Timedelta(days=dias)
     st.sidebar.info(f"📊 Exibindo dados desde {data_limite.date()}")
+
+st.sidebar.divider()
+st.sidebar.header("🫀 Zonas de Treino")
+st.sidebar.caption("Usados para calcular Z1–Z5 na análise de cada atividade.")
+
+idade  = st.sidebar.number_input("Sua idade (anos)", min_value=10, max_value=90, value=35)
+fc_max = st.sidebar.number_input("FC máxima (bpm)",  min_value=100, max_value=250,
+                                  value=220 - idade)
+ftp    = st.sidebar.number_input("FTP (watts)",       min_value=50,  max_value=600, value=200)
 
 
 # ── Título ────────────────────────────────────────────────────────────────────
@@ -220,3 +231,14 @@ st.info(analisar_atividade(streams))
 
 st.subheader("📈 Velocidade ao longo do percurso")
 render_velocidade_fadiga(detectar_zonas_fadiga(streams))
+
+
+# ── Seção 11: Zonas de treino ─────────────────────────────────────────────────
+st.subheader("🫀 Zonas de Treino Z1–Z5")
+st.caption(
+    f"Calculado com FC máx = **{fc_max} bpm** e FTP = **{ftp} W**. "
+    "Ajuste os valores na sidebar."
+)
+
+zonas = calcular_zonas(streams, fc_max=fc_max, ftp=ftp)
+render_zonas_treino(zonas)

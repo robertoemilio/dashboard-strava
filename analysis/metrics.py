@@ -209,3 +209,88 @@ def detectar_zonas_fadiga(streams: dict) -> dict:
         "pacing_ideal":   pacing_ideal,
         "media_geral":    sum(velocidade_kmh) / n,
     }
+
+
+# =========================
+# ANÁLISE DE ZONAS DE TREINO
+# =========================
+
+ZONAS = [
+    {"zona": "Z1", "nome": "Recuperação",  "cor": "#4fc3f7"},
+    {"zona": "Z2", "nome": "Endurance",    "cor": "#81c784"},
+    {"zona": "Z3", "nome": "Tempo",        "cor": "#fff176"},
+    {"zona": "Z4", "nome": "Limiar",       "cor": "#ffb74d"},
+    {"zona": "Z5", "nome": "VO2 Max",      "cor": "#e57373"},
+]
+
+# Limites inferiores de cada zona (índice 0=Z1 ... 4=Z5)
+# FC: % da FC máxima | Potência: % do FTP
+_FC_LIMITES  = [0, 0.60, 0.70, 0.80, 0.90]
+_POT_LIMITES = [0, 0.55, 0.75, 0.90, 1.05]
+
+
+def _classificar_zona(valor: float, limites: list[float]) -> int:
+    """Retorna o índice da zona (0-4) dado um valor normalizado (% do máximo)."""
+    for i in range(4, 0, -1):
+        if valor >= limites[i]:
+            return i
+    return 0
+
+
+def calcular_zonas(
+    streams: dict,
+    fc_max: int,
+    ftp: int,
+) -> dict:
+    """
+    Calcula o tempo e percentual em cada zona Z1-Z5 para uma atividade.
+
+    Parâmetros
+    ----------
+    streams : dict   — streams retornados por get_activity_streams()
+    fc_max  : int    — FC máxima do atleta em bpm  (ex: 185)
+    ftp     : int    — FTP do atleta em watts       (ex: 200)
+
+    Retorna
+    -------
+    dict com chaves 'fc' e 'potencia', cada uma contendo um DataFrame
+    com colunas: zona, nome, cor, tempo_s, tempo_str, percentual.
+    Retorna None em cada chave se o stream correspondente não existir.
+    """
+    time_data = streams.get("time", {}).get("data", [])
+    resultado = {}
+
+    for metrica, chave_stream, limites, referencia in [
+        ("fc",       "heartrate", _FC_LIMITES,  fc_max),
+        ("potencia", "watts",     _POT_LIMITES, ftp),
+    ]:
+        stream = streams.get(chave_stream, {}).get("data")
+
+        if not stream or not time_data:
+            resultado[metrica] = None
+            continue
+
+        # Tempo em cada zona (segundos)
+        tempo_zonas = [0] * 5
+
+        for i in range(1, min(len(stream), len(time_data))):
+            dt    = time_data[i] - time_data[i - 1]
+            valor = stream[i] / referencia
+            zona  = _classificar_zona(valor, limites)
+            tempo_zonas[zona] += dt
+
+        total = sum(tempo_zonas) or 1
+
+        rows = []
+        for i, z in enumerate(ZONAS):
+            t = tempo_zonas[i]
+            rows.append({
+                **z,
+                "tempo_s":    t,
+                "tempo_str":  f"{t // 60}min {t % 60:02d}s",
+                "percentual": round(t / total * 100, 1),
+            })
+
+        resultado[metrica] = pd.DataFrame(rows)
+
+    return resultado

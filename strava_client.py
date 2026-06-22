@@ -61,11 +61,17 @@ def get_activities() -> list[dict]:
 
 
 def get_activity_streams(activity_id: int) -> dict:
-    """Retorna os streams de uma atividade (distância, velocidade, altitude, tempo)."""
+    """
+    Retorna os streams de uma atividade.
+    Inclui heartrate e watts quando disponíveis no dispositivo do atleta.
+    """
     res = requests.get(
         f"{_STRAVA_API_BASE}/activities/{activity_id}/streams",
         headers=_auth_headers(),
-        params={"keys": "distance,velocity_smooth,altitude,time", "key_by_type": "true"},
+        params={
+            "keys":        "distance,velocity_smooth,altitude,time,heartrate,watts",
+            "key_by_type": "true",
+        },
         timeout=10,
     )
     res.raise_for_status()

@@ -129,3 +129,79 @@ def render_velocidade_fadiga(zonas: dict) -> None:
 - Comece entre {pacing_ideal - 1:.1f} e {pacing_ideal:.1f} km/h
 - Evite picos acima de {pacing_ideal + 2:.1f} km/h no início
 """)
+
+
+def render_zonas_treino(zonas: dict) -> None:
+    """
+    Renderiza os gráficos de zonas de treino (FC e/ou Potência).
+    Mostra gráfico de rosca (percentual) + barra (tempo) para cada métrica.
+    """
+    tem_fc  = zonas.get("fc")       is not None
+    tem_pot = zonas.get("potencia") is not None
+
+    if not tem_fc and not tem_pot:
+        st.warning("⚠️ Esta atividade não possui dados de FC nem de potência.")
+        return
+
+    metricas = []
+    if tem_fc:
+        metricas.append(("fc",       "❤️ Frequência Cardíaca", zonas["fc"]))
+    if tem_pot:
+        metricas.append(("potencia", "⚡ Potência (Watts)",    zonas["potencia"]))
+
+    for _, titulo, df in metricas:
+        st.markdown(f"### {titulo}")
+
+        col_kpi = st.columns(5)
+        for i, row in df.iterrows():
+            col_kpi[i].markdown(f"""
+            <div style="background:{row['cor']}22; border:1px solid {row['cor']};
+                        border-radius:12px; padding:12px; text-align:center;">
+                <div style="color:{row['cor']}; font-size:18px; font-weight:800;">
+                    {row['zona']}
+                </div>
+                <div style="color:#8b949e; font-size:13px;">{row['nome']}</div>
+                <div style="color:white; font-size:22px; font-weight:700;">
+                    {row['percentual']}%
+                </div>
+                <div style="color:#8b949e; font-size:13px;">{row['tempo_str']}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        col_esq, col_dir = st.columns(2)
+
+        # Rosca — percentual por zona
+        with col_esq:
+            fig_rosca = go.Figure(go.Pie(
+                labels=[f"{r['zona']} – {r['nome']}" for _, r in df.iterrows()],
+                values=df["percentual"],
+                hole=0.55,
+                marker_colors=df["cor"].tolist(),
+                textinfo="label+percent",
+                hovertemplate="%{label}<br>%{value}%<extra></extra>",
+            ))
+            fig_rosca.update_layout(
+                title="Distribuição por zona (%)",
+                showlegend=False,
+            )
+            st.plotly_chart(aplicar_tema_plotly(fig_rosca), use_container_width=True)
+
+        # Barra horizontal — tempo por zona
+        with col_dir:
+            fig_barra = go.Figure(go.Bar(
+                x=df["tempo_s"],
+                y=[f"{r['zona']} – {r['nome']}" for _, r in df.iterrows()],
+                orientation="h",
+                marker_color=df["cor"].tolist(),
+                text=df["tempo_str"],
+                textposition="auto",
+                hovertemplate="%{y}<br>%{text}<extra></extra>",
+            ))
+            fig_barra.update_layout(
+                title="Tempo em cada zona",
+                xaxis_title="Segundos",
+                yaxis=dict(autorange="reversed"),
+            )
+            st.plotly_chart(aplicar_tema_plotly(fig_barra), use_container_width=True)
+
+        st.divider()
