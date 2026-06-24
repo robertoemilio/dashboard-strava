@@ -294,3 +294,51 @@ def calcular_zonas(
         resultado[metrica] = pd.DataFrame(rows)
 
     return resultado
+
+# Limites de velocidade por zona (% da vel. máxima histórica)
+_VEL_LIMITES = [0, 0.55, 0.68, 0.80, 0.90]
+
+
+def calcular_zonas_velocidade(streams: dict, vel_max_kmh: float) -> pd.DataFrame:
+    """
+    Calcula tempo e percentual em cada zona Z1-Z5 usando velocidade
+    como proxy de intensidade, baseado na velocidade máxima histórica.
+
+    Parâmetros
+    ----------
+    streams      : dict  — streams de get_activity_streams()
+    vel_max_kmh  : float — velocidade máxima histórica do atleta em km/h
+
+    Retorna
+    -------
+    DataFrame com colunas: zona, nome, cor, tempo_s, tempo_str, percentual.
+    """
+    vel_data  = streams.get("velocity_smooth", {}).get("data", [])
+    time_data = streams.get("time", {}).get("data", [])
+
+    if not vel_data or not time_data:
+        return pd.DataFrame()
+
+    tempo_zonas = [0] * 5
+
+    for i in range(1, min(len(vel_data), len(time_data))):
+        dt    = time_data[i] - time_data[i - 1]
+        # converte m/s → km/h e normaliza pela vel. máxima
+        vel_kmh = vel_data[i] * 3.6
+        valor   = vel_kmh / vel_max_kmh if vel_max_kmh > 0 else 0
+        zona    = _classificar_zona(valor, _VEL_LIMITES)
+        tempo_zonas[zona] += dt
+
+    total = sum(tempo_zonas) or 1
+
+    rows = []
+    for i, z in enumerate(ZONAS):
+        t = tempo_zonas[i]
+        rows.append({
+            **z,
+            "tempo_s":    t,
+            "tempo_str":  f"{t // 60}min {t % 60:02d}s",
+            "percentual": round(t / total * 100, 1),
+        })
+
+    return pd.DataFrame(rows)

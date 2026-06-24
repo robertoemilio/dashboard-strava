@@ -15,6 +15,7 @@ from analysis.metrics import (
     analisar_atividade,
     detectar_zonas_fadiga,
     calcular_zonas,
+    calcular_zonas_velocidade,
 )
 from ui.theme import load_css
 from ui.kpi_cards import render_kpi_cards, render_pr_cards
@@ -25,6 +26,7 @@ from ui.charts import (
     render_plano_semanal,
     render_velocidade_fadiga,
     render_zonas_treino,
+    render_zonas_velocidade,
 )
 from ui.map_view import render_mapa
 
@@ -242,3 +244,15 @@ st.caption(
 
 zonas = calcular_zonas(streams, fc_max=fc_max, ftp=ftp)
 render_zonas_treino(zonas)
+
+
+# ── Seção 12: Zonas por velocidade ───────────────────────────────────────────
+st.subheader("🚴 Zonas de Treino por Velocidade")
+st.caption(
+    "Aproximação das zonas Z1–Z5 usando velocidade como proxy de intensidade. "
+    "Útil quando não há sensor de FC ou potência."
+)
+
+vel_max_kmh = round(df["speed_kmh"].max(), 1)
+df_zonas_vel = calcular_zonas_velocidade(streams, vel_max_kmh)
+render_zonas_velocidade(df_zonas_vel, vel_max_kmh)

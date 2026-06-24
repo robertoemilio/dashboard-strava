@@ -205,3 +205,70 @@ def render_zonas_treino(zonas: dict) -> None:
             st.plotly_chart(aplicar_tema_plotly(fig_barra), use_container_width=True)
 
         st.divider()
+
+
+def render_zonas_velocidade(df: pd.DataFrame, vel_max_kmh: float) -> None:
+    """
+    Renderiza os gráficos de zonas de treino calculadas por velocidade.
+    Mesma estrutura visual de render_zonas_treino.
+    """
+    if df.empty:
+        st.warning("Não foi possível calcular as zonas por velocidade.")
+        return
+
+    st.caption(f"Referência: velocidade máxima histórica = **{vel_max_kmh:.1f} km/h**")
+
+    # Cards por zona
+    col_kpi = st.columns(5)
+    for i, (_, row) in enumerate(df.iterrows()):
+        col_kpi[i].markdown(f"""
+        <div style="background:{row['cor']}22; border:1px solid {row['cor']};
+                    border-radius:12px; padding:12px; text-align:center;">
+            <div style="color:{row['cor']}; font-size:18px; font-weight:800;">
+                {row['zona']}
+            </div>
+            <div style="color:#8b949e; font-size:13px;">{row['nome']}</div>
+            <div style="color:white; font-size:22px; font-weight:700;">
+                {row['percentual']}%
+            </div>
+            <div style="color:#8b949e; font-size:13px;">{row['tempo_str']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    col_esq, col_dir = st.columns(2)
+
+    # Rosca — percentual por zona
+    with col_esq:
+        fig_rosca = go.Figure(go.Pie(
+            labels=[f"{r['zona']} – {r['nome']}" for _, r in df.iterrows()],
+            values=df["percentual"],
+            hole=0.55,
+            marker_colors=df["cor"].tolist(),
+            textinfo="label+percent",
+            hovertemplate="%{label}<br>%{value}%<extra></extra>",
+        ))
+        fig_rosca.update_layout(
+            title="Distribuição por zona (%)",
+            showlegend=False,
+        )
+        st.plotly_chart(aplicar_tema_plotly(fig_rosca), use_container_width=True)
+
+    # Barra horizontal — tempo por zona
+    with col_dir:
+        fig_barra = go.Figure(go.Bar(
+            x=df["tempo_s"],
+            y=[f"{r['zona']} – {r['nome']}" for _, r in df.iterrows()],
+            orientation="h",
+            marker_color=df["cor"].tolist(),
+            text=df["tempo_str"],
+            textposition="auto",
+            hovertemplate="%{y}<br>%{text}<extra></extra>",
+        ))
+        fig_barra.update_layout(
+            title="Tempo em cada zona",
+            xaxis_title="Segundos",
+            yaxis=dict(autorange="reversed"),
+        )
+        st.plotly_chart(aplicar_tema_plotly(fig_barra), use_container_width=True)
