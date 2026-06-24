@@ -16,6 +16,8 @@ from analysis.metrics import (
     detectar_zonas_fadiga,
     calcular_zonas,
     calcular_zonas_velocidade,
+    estimar_ftp_velocidade,
+    calcular_zonas_ftp_estimado,
 )
 from ui.theme import load_css
 from ui.kpi_cards import render_kpi_cards, render_pr_cards
@@ -27,6 +29,7 @@ from ui.charts import (
     render_velocidade_fadiga,
     render_zonas_treino,
     render_zonas_velocidade,
+    render_zonas_ftp_estimado,
 )
 from ui.map_view import render_mapa
 
@@ -256,3 +259,21 @@ st.caption(
 vel_max_kmh = round(df["speed_kmh"].max(), 1)
 df_zonas_vel = calcular_zonas_velocidade(streams, vel_max_kmh)
 render_zonas_velocidade(df_zonas_vel, vel_max_kmh)
+
+
+# ── Seção 13: Zonas por FTP estimado ─────────────────────────────────────────
+st.subheader("⚡ Zonas de Potência com FTP Estimado")
+st.caption(
+    "O FTP é estimado automaticamente a partir da melhor velocidade média "
+    "sustentada por 20 minutos contínuos nas suas últimas 20 atividades."
+)
+
+with st.spinner("Calculando FTP estimado..."):
+    ftp_kmh = estimar_ftp_velocidade(df, get_activity_streams)
+
+if ftp_kmh is None:
+    st.warning("Não foi possível estimar o FTP — atividades sem dados suficientes.")
+else:
+    st.success(f"⚡ FTP estimado: **{ftp_kmh} km/h**")
+    df_zonas_ftp = calcular_zonas_ftp_estimado(streams, ftp_kmh)
+    render_zonas_ftp_estimado(df_zonas_ftp, ftp_kmh)

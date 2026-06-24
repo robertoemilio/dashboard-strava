@@ -342,3 +342,93 @@ def calcular_zonas_velocidade(streams: dict, vel_max_kmh: float) -> pd.DataFrame
         })
 
     return pd.DataFrame(rows)
+
+
+def estimar_ftp_velocidade(df: pd.DataFrame, all_streams_fn) -> float | None:
+    """
+    Estima o FTP em km/h buscando a melhor velocidade média sustentada
+    por 20 minutos contínuos entre as últimas 90 dias de atividades.
+    Aplica fator 0.95 sobre esse valor (protocolo padrão de teste de 20min).
+
+    Parâmetros
+    ----------
+    df             : DataFrame de atividades já processado
+    all_streams_fn : callable — função get_activity_streams(id)
+
+    Retorna
+    -------
+    FTP estimado em km/h, ou None se não houver dados suficientes.
+    """
+    JANELA_S = 20 * 60   # 20 minutos em segundos
+
+    df_recente = df.sort_values("start_date", ascending=False).head(20)
+    melhor     = 0.0
+
+    for _, row in df_recente.iterrows():
+        try:
+            streams  = all_streams_fn(int(row["id"]))
+            vel_data = streams.get("velocity_smooth", {}).get("data", [])
+            t_data   = streams.get("time", {}).get("data", [])
+
+            if not vel_data or not t_data:
+                continue
+
+            # Janela deslizante de 20 minutos
+            i_start = 0
+            for i_end in range(len(t_data)):
+                while t_data[i_end] - t_data[i_start] > JANELA_S:
+                    i_start += 1
+                trecho = vel_data[i_start:i_end + 1]
+                if trecho:
+                    media = sum(trecho) / len(trecho) * 3.6   # m/s → km/h
+                    if media > melhor:
+                        melhor = media
+
+        except Exception:
+            continue
+
+    return round(melhor * 0.95, 1) if melhor > 0 else None
+
+
+def calcular_zonas_ftp_estimado(streams: dict, ftp_kmh: float) -> pd.DataFrame:
+    """
+    Calcula zonas Z1–Z5 usando o FTP estimado em km/h como referência,
+    seguindo os mesmos percentuais do padrão Coggan para potência.
+
+    Parâmetros
+    ----------
+    streams  : dict  — streams de get_activity_streams()
+    ftp_kmh  : float — FTP estimado em km/h (de estimar_ftp_velocidade)
+
+    Retorna
+    -------
+    DataFrame com colunas: zona, nome, cor, tempo_s, tempo_str, percentual.
+    """
+    vel_data  = streams.get("velocity_smooth", {}).get("data", [])
+    time_data = streams.get("time", {}).get("data", [])
+
+    if not vel_data or not time_data or ftp_kmh <= 0:
+        return pd.DataFrame()
+
+    tempo_zonas = [0] * 5
+
+    for i in range(1, min(len(vel_data), len(time_data))):
+        dt      = time_data[i] - time_data[i - 1]
+        vel_kmh = vel_data[i] * 3.6
+        valor   = vel_kmh / ftp_kmh
+        zona    = _classificar_zona(valor, _POT_LIMITES)
+        tempo_zonas[zona] += dt
+
+    total = sum(tempo_zonas) or 1
+
+    rows = []
+    for i, z in enumerate(ZONAS):
+        t = tempo_zonas[i]
+        rows.append({
+            **z,
+            "tempo_s":    t,
+            "tempo_str":  f"{t // 60}min {t % 60:02d}s",
+            "percentual": round(t / total * 100, 1),
+        })
+
+    return pd.DataFrame(rows)
